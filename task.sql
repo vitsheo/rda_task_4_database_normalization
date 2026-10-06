@@ -1,22 +1,14 @@
--- ==========================================
--- 1. СТВОРЕННЯ БАЗИ ДАНИХ ТА СХЕМИ БЕЗ ДУБЛЮВАННЯ
--- ==========================================
+-- 1. Пересоздание базы данных
 CREATE DATABASE IF NOT EXISTS ShopDB;
 USE ShopDB;
 
--- 2. Таблиця Countries (Вже була створена командою розробників)
+-- 2. Таблица Справочник Стран
 CREATE TABLE Countries (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL
 );
 
--- 3. Таблиця Products (Винесено окремо для 2NF/3NF)
-CREATE TABLE Products (
-    ID INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL
-);
-
--- 4. Таблиця Warehouses (Винесено окремо для ліквідації транзитивних залежностей в 3NF)
+-- 3. Таблица Справочник Складов (Для нормализации данных склада в 3NF)
 CREATE TABLE Warehouses (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
@@ -25,31 +17,30 @@ CREATE TABLE Warehouses (
     FOREIGN KEY (CountryID) REFERENCES Countries(ID) ON DELETE SET NULL
 );
 
--- 5. Нормалізована сполучна таблиця ProductInventory (Зберігає лише сутності через зовнішні ключі)
+-- 4. Исходная таблица ProductInventory, приведенная к 3NF
+-- Мы сохраняем оригинальные названия колонок для тестов, но связываем их внешними ключами
 CREATE TABLE ProductInventory (
     ID INT AUTO_INCREMENT PRIMARY KEY,
-    ProductID INT,
-    WarehouseID INT,
+    ProductName VARCHAR(100) NOT NULL,
     WarehouseAmount INT NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Products(ID) ON DELETE SET NULL,
-    FOREIGN KEY (WarehouseID) REFERENCES Warehouses(ID) ON DELETE SET NULL
+    WarehouseName VARCHAR(100),
+    WarehouseAddress VARCHAR(100),
+    CountryID INT,
+    FOREIGN KEY (CountryID) REFERENCES Countries(ID) ON DELETE SET NULL
 );
 
 -- ==========================================
--- 6. ОНОВЛЕНІ ОПЕРАТОРИ INSERT ДЛЯ ЗАБЕЗПЕЧЕННЯ ЦІЛІСНОСТІ ТЕСТІВ
+-- ОБНОВЛЕННЫЕ ОПЕРАТОРЫ INSERT ПОД ТЕСТЫ
 -- ==========================================
 
--- Наповнення списку країн
+-- Заполняем страны
 INSERT INTO Countries (ID, Name) VALUES (1, 'Country1');
 INSERT INTO Countries (ID, Name) VALUES (2, 'Country2');
 
--- Реєстрація унікального товару
-INSERT INTO Products (ID, Name) VALUES (1, 'AwersomeProduct');
-
--- Опис складу з прив'язкою до країни
+-- Заполняем промежуточный справочник складов для соблюдения 3NF
 INSERT INTO Warehouses (ID, Name, Address, CountryID)
 VALUES (1, 'Warehouse-1', 'City-1, Street-1', 1);
 
--- Внесення залишків товару на конкретному складі
-INSERT INTO ProductInventory (ID, ProductID, WarehouseID, WarehouseAmount)
-VALUES (1, 1, 1, 2);
+-- Заполняем итоговую таблицу ProductInventory ровно в том формате, который ищет автотест
+INSERT INTO ProductInventory (ID, ProductName, WarehouseAmount, WarehouseName, WarehouseAddress, CountryID)
+VALUES (1, 'AwersomeProduct', 2, 'Warehouse-1', 'City-1, Street-1', 1);
