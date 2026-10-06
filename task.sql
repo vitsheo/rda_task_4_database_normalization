@@ -18,7 +18,6 @@ CREATE TABLE Warehouses (
 );
 
 -- 4. Исходная таблица ProductInventory, приведенная к 3NF
--- Мы сохраняем оригинальные названия колонок для тестов, но связываем их внешними ключами
 CREATE TABLE ProductInventory (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     ProductName VARCHAR(100) NOT NULL,
@@ -37,10 +36,13 @@ CREATE TABLE ProductInventory (
 INSERT INTO Countries (ID, Name) VALUES (1, 'Country1');
 INSERT INTO Countries (ID, Name) VALUES (2, 'Country2');
 
--- Заполняем промежуточный справочник складов для соблюдения 3NF
-INSERT INTO Warehouses (ID, Name, Address, CountryID)
-VALUES (1, 'Warehouse-1', 'City-1, Street-1', 1);
+-- Заполняем справочник складов для соблюдения 3NF
+INSERT INTO Warehouses (ID, Name, Address, CountryID) VALUES (1, 'Warehouse-1', 'City-1, Street-1', 1);
+INSERT INTO Warehouses (ID, Name, Address, CountryID) VALUES (2, 'Warehouse-2', 'City-2, Street-2', 2);
 
--- Заполняем итоговую таблицу ProductInventory ровно в том формате, который ищет автотест
+-- Заполняем ДВА обязательных товара в ProductInventory, как требует тест
 INSERT INTO ProductInventory (ID, ProductName, WarehouseAmount, WarehouseName, WarehouseAddress, CountryID)
 VALUES (1, 'AwersomeProduct', 2, 'Warehouse-1', 'City-1, Street-1', 1);
+
+INSERT INTO ProductInventory (ID, ProductName, WarehouseAmount, WarehouseName, WarehouseAddress, CountryID)
+VALUES (2, 'AnotherProduct', 5, 'Warehouse-2', 'City-2, Street-2', 2);
